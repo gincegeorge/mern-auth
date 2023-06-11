@@ -39,7 +39,7 @@ const getUserProfile = asyncHandler((req, res) => {
     res.status(200).json({ message: "user profile" })
 })
 
-/**
+/** 
  * @desc update user profile
  * route PUT api/users/profile
  * @access Private
