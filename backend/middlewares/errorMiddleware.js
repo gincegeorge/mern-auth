@@ -12,7 +12,7 @@ const errorHandler = (err, req, res, next) => {
         statusCode = 404
         message = 'resource not found'
     }
-
+ 
     res.status(statusCode).json({
         message,
         statusCode,
