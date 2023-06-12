@@ -5,13 +5,16 @@ import morgan from 'morgan'
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js'
 import connectDb from './config/db.js'
 
-
-dotenv.config() 
+dotenv.config()
 connectDb()
+
+
 
 const port = process.env.PORT || 6000
 
 const app = express()
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 app.use(morgan('tiny'))
 
