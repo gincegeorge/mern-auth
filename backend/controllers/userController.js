@@ -2,7 +2,6 @@ import asyncHandler from "express-async-handler"
 import User from "../models/userModels.js"
 import generateToken from '../utils/generateToken.js'
 
-
 /** 
  * @desc Register new user
  * route POST api/users/
@@ -12,9 +11,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const { name, email, password } = req.body
     const userExists = await User.findOne({ email })
-    console.log(name, email, password);
-
-    console.log("userExists", userExists);
 
     if (userExists) {
         res.status(400)
@@ -24,10 +20,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
         if (user) {
             res.status(201)
-            let token = generateToken(user._id)
+            let token = await generateToken(user._id)
 
             res.status(201)
-                .cookie('jwt-user', token, {
+                .cookie('jwtUser', token, {
                     httpOnly: true,
                     // secure: process.env.ENVIRONMENT !== 'development',
                     sameSite: 'strict',
@@ -53,13 +49,21 @@ const registerUser = asyncHandler(async (req, res) => {
 const authUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body
 
-    const user = User.findOne({ email })
-    console.log(user);
+    const user = await User.findOne({ email })
 
-    if (user && (await User.matchPassword(password))) {
-        res.status(200).json({
-            message: "logged in successfully"
-        })
+    if (user && (await user.matchPassword(password))) {
+        let token = await generateToken(user._id)
+        console.log(token);
+        res.status(200)
+            .cookie('jwtUser', token, {
+                httpOnly: true,
+                // secure: process.env.ENVIRONMENT !== 'development',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000
+            })
+            .json({
+                message: "logged in successfully"
+            })
     } else {
         res.status(401).json({ message: "Invalid email or password" })
     }
@@ -72,7 +76,11 @@ const authUser = asyncHandler(async (req, res) => {
  * @access Public
  */
 const logoutUser = asyncHandler((req, res) => {
-    res.status(200).json({ message: "Logout user" })
+    res.status(200)
+        .cookie('jwtUser', "", {
+            httpOnly: true,
+            maxAge: 0
+        }).json({ message: "Logout user" })
 })
 
 
@@ -82,7 +90,8 @@ const logoutUser = asyncHandler((req, res) => {
  * @access Private
  */
 const getUserProfile = asyncHandler((req, res) => {
-    res.status(200).json({ message: "user profile" })
+    console.log(req.user);
+    res.status(200).json(req.user)
 })
 
 /** 
@@ -90,8 +99,26 @@ const getUserProfile = asyncHandler((req, res) => {
  * route PUT api/users/profile
  * @access Private
  */
-const updateUserProfile = asyncHandler((req, res) => {
-    res.status(200).json({ message: "Update user profile" })
+const updateUserProfile = asyncHandler(async (req, res) => {
+    let user = await User.findById({ _id: req.user._id })
+    if (user) {
+        user.name = req.body.name || user.name
+        user.email = req.body.email || user.email
+        if (req.body.password) {
+            user.password = req.body.password
+        }
+        const updatedUser = await user.save()
+
+        console.log(updatedUser);
+        res.status(201).json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email
+        })
+    } else {
+        res.status(404)
+        throw new Error("User not found")
+    }
 })
 
 
