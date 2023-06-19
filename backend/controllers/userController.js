@@ -110,9 +110,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
         console.log(updatedUser);
         res.status(201).json({
-            _id: updatedUser._id,
-            name: updatedUser.name,
-            email: updatedUser.email
+            user
         })
     } else {
         res.status(404)

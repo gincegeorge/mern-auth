@@ -4,7 +4,9 @@ import { Form, Button } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import FormContainer from "../components/FormContainer";
 import { toast } from "react-toastify";
+import { useUpdateUserMutation } from "../slices/usersApiSlice";
 import Loader from "../components/Loader";
+import { setCredentials } from "../slices/authSlice";
 
 const ProfileScreen = () => {
   const [email, setEmail] = useState("");
@@ -12,9 +14,39 @@ const ProfileScreen = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const { userInfo } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const [updateProfile, { isLoading }] = useUpdateUserMutation();
+
+  useEffect(() => {
+    setName(userInfo?.user?.name);
+    setEmail(userInfo?.user?.email);
+  }, [userInfo.user.name, userInfo.user.email]);
+
   const submitHandler = async (e) => {
     e.preventDefault();
-    console.log("submit");
+
+    if (name === userInfo?.user?.name && email === userInfo?.user?.email) {
+      toast.info("email and password are the same");
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("passwords donot match");
+    } else {
+      try {
+        const res = await updateProfile({
+          _id: userInfo.user._id,
+          name,
+          email,
+          password,
+          confirmPassword,
+        }).unwrap();
+        dispatch(setCredentials({ ...res }));
+        toast.success("profile updated");
+      } catch (error) {
+        toast.error(error?.error || error?.data?.message);
+      }
+    }
   };
 
   return (
@@ -63,6 +95,7 @@ const ProfileScreen = () => {
         <Button type="submit" variant="primary" className="mt-3">
           Update
         </Button>
+        {isLoading && <Loader />}
       </Form>
     </FormContainer>
   );
