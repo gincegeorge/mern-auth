@@ -30,9 +30,7 @@ const registerUser = asyncHandler(async (req, res) => {
                     maxAge: 30 * 24 * 60 * 60 * 1000
                 })
                 .json({
-                    id: user._id,
-                    name: user.name,
-                    email: user.email
+                    user
                 })
         } else {
             res.status(400)
@@ -53,7 +51,7 @@ const authUser = asyncHandler(async (req, res) => {
 
     if (user && (await user.matchPassword(password))) {
         let token = await generateToken(user._id)
-        console.log(token);
+        console.log(user);
         res.status(200)
             .cookie('jwtUser', token, {
                 httpOnly: true,
@@ -62,7 +60,8 @@ const authUser = asyncHandler(async (req, res) => {
                 maxAge: 30 * 24 * 60 * 60 * 1000
             })
             .json({
-                message: "logged in successfully"
+                message: "logged in successfully",
+                user
             })
     } else {
         res.status(401).json({ message: "Invalid email or password" })
