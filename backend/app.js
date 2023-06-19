@@ -5,6 +5,7 @@ import morgan from 'morgan'
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js'
 import connectDb from './config/db.js'
 import cookieParser from 'cookie-parser'
+import path from 'path'
 
 dotenv.config()
 connectDb()
@@ -18,7 +19,20 @@ app.use(cookieParser())
 app.use(morgan('tiny'))
 
 app.use('/api/users/', userRoutes)
-app.get('/', (req, res) => res.send("working"))
+
+
+if (process.env.ENVIRONMENT === 'production') {
+    console.log('production');
+    const __dirname = path.resolve()
+    console.log(__dirname);
+    app.use(express.static(path.join(__dirname, 'frontend/dist')))
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'))
+    })
+} else {
+    console.log('developement');
+    app.get('/', (req, res) => res.send("working"))
+}
 
 app.use(notFound)
 app.use(errorHandler)

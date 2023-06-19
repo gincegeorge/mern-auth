@@ -19,7 +19,7 @@ const RegisterScreen = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
 
-  const [register, isLoading] = useRegisterMutation();
+  const [register, {isLoading}] = useRegisterMutation();
 
   useEffect(() => {
     if (userInfo) {

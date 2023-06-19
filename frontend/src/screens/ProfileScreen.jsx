@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Form, Button } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import FormContainer from "../components/FormContainer";
@@ -16,6 +16,7 @@ const ProfileScreen = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [updateProfile, { isLoading }] = useUpdateUserMutation();
 
   useEffect(() => {
@@ -43,6 +44,7 @@ const ProfileScreen = () => {
         }).unwrap();
         dispatch(setCredentials({ ...res }));
         toast.success("profile updated");
+        navigate('/')
       } catch (error) {
         toast.error(error?.error || error?.data?.message);
       }
